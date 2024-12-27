@@ -202,44 +202,52 @@
 
         if (studentSnap.exists()) {
             const data = studentSnap.data();
-            const students = data.students || [data]; // 이전 형식과의 호환성 유지
+            // students 배열이 있는지 확인
+            const students = data.students || [];
 
-            const studentHtml = students.map(student => `
-                <div class="student-info">
-                    <span class="campus-badge">${getCampusFullName(student.campus)}</span>
-                    <span class="period-badge">${getPeriodFullName(student.period)}</span>
+            if (students.length > 0) {
+                let html = '';
+                students.forEach(student => {
+                    html += `
+                        <div class="student-info">
+                            <span class="campus-badge">${getCampusFullName(student.campus)}</span>
+                            <span class="period-badge">${getPeriodFullName(student.period)}</span>
 
-                    <div class="info-row">
-                        <span class="info-label">이름:</span>
-                        ${student.name} (${student.engName})
+                            <div class="info-row">
+                                <span class="info-label">이름:</span>
+                                ${student.name} (${student.engName})
+                            </div>
+                            <div class="info-row">
+                                <span class="info-label">학교:</span>
+                                ${student.school || ''}
+                            </div>
+                            <div class="info-row">
+                                <span class="info-label">학년:</span>
+                                ${student.grade || ''}
+                            </div>
+                            <div class="info-row">
+                                <span class="info-label">반배정:</span>
+                                ${student.class || ''}
+                            </div>
+                            <div class="info-row">
+                                <span class="info-label">레벨(반이름):</span>
+                                ${student.level || ''}(${student.group || ''})
+                            </div>
+                            <div class="info-row">
+                                <span class="info-label">셔틀버스:</span>
+                                ${student.shuttle || "신청안함"}
+                            </div>
+                        </div>
+                    `;
+                });
+                resultDiv.innerHTML = html;
+            } else {
+                resultDiv.innerHTML = `
+                    <div class="not-found">
+                        <p>학생 정보를 찾을 수 없습니다.</p>
                     </div>
-                    <div class="info-row">
-                        <span class="info-label">학교:</span>
-                        ${student.school}
-                    </div>
-                    <div class="info-row">
-                        <span class="info-label">학년:</span>
-                        ${student.grade}
-                    </div>
-                    <div class="info-row">
-                        <span class="info-label">반배정:</span>
-                        ${student.class}
-                    </div>
-                    <div class="info-row">
-                        <span class="info-label">레벨(반이름):</span>
-                        ${student.level}(${student.group})
-                    </div>
-                    <div class="info-row">
-                        <span class="info-label">셔틀버스:</span>
-                        ${student.shuttle || "신청안함"}
-                    </div>
-                    <div class="notice" style="font-size: 12px; color: #666; margin-top: 15px; margin-left: 100px;">
-                        레벨테스트 및 학년, 설문조사 결과를 고려하여 반이 배정되었습니다.
-                    </div>
-                </div>
-            `).join('<div style="margin: 20px 0;"></div>'); // 학생 정보 사이 여백 추가
-
-            resultDiv.innerHTML = studentHtml;
+                `;
+            }
         } else {
             resultDiv.innerHTML = `
                 <div class="not-found">
@@ -257,7 +265,7 @@
             </div>
         `;
     }
-}
+};
 
         // Enter 키 이벤트 리스너
         document.getElementById('phoneNumber').addEventListener('keypress', function(e) {
