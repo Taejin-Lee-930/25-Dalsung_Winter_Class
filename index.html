@@ -189,70 +189,75 @@
             return period === "1기" ? "1기(1/7-1/17)" : "2기(1/13-1/23)";
         }
 
-        window.searchStudent = async function() {
-            const phoneNumber = document.getElementById('phoneNumber').value;
-            const resultDiv = document.getElementById('result');
-            resultDiv.style.display = 'block';
+        // 검색 함수 부분만 수정
+    window.searchStudent = async function() {
+    const phoneNumber = document.getElementById('phoneNumber').value;
+    const resultDiv = document.getElementById('result');
+    resultDiv.style.display = 'block';
 
-            try {
-                // Firestore에서 학생 데이터 조회
-                const studentRef = doc(db, 'students', phoneNumber);
-                const studentSnap = await getDoc(studentRef);
+    try {
+        // Firestore에서 학생 데이터 조회
+        const studentRef = doc(db, 'students', phoneNumber);
+        const studentSnap = await getDoc(studentRef);
 
-                if (studentSnap.exists()) {
-                    const student = studentSnap.data();
-                    resultDiv.innerHTML = `
-                        <div class="student-info">
-                            <span class="campus-badge">${getCampusFullName(student.campus)}</span>
-                            <span class="period-badge">${getPeriodFullName(student.period)}</span>
+        if (studentSnap.exists()) {
+            const data = studentSnap.data();
+            const students = data.students || [data]; // 이전 형식과의 호환성 유지
 
-                            <div class="info-row">
-                                <span class="info-label">이름:</span>
-                                ${student.name} (${student.engName})
-                            </div>
-                            <div class="info-row">
-                                <span class="info-label">학교:</span>
-                                ${student.school}
-                            </div>
-                            <div class="info-row">
-                                <span class="info-label">학년:</span>
-                                ${student.grade}
-                            </div>
-                            <div class="info-row">
-                                <span class="info-label">반배정:</span>
-                                ${student.class}
-                            </div>
-                            <div class="info-row">
-                                <span class="info-label">레벨(반이름):</span>
-                                ${student.level}(${student.group})
-                            </div>
-                            <div class="info-row">
-                                <span class="info-label">셔틀버스:</span>
-                                ${student.shuttle || "신청안함"}
-                            </div>
-                            <div class="notice" style="font-size: 12px; color: #666; margin-top: 15px; margin-left: 100px;">
-                                레벨테스트 및 학년, 설문조사 결과를 고려하여 반이 배정되었습니다.
-                            </div>
-                        </div>
-                    `;
-                } else {
-                    resultDiv.innerHTML = `
-                        <div class="not-found">
-                            <p>입력하신 연락처로 등록된 학생 정보가 없습니다.</p>
-                            <p>연락처를 다시 확인해 주세요.</p>
-                        </div>
-                    `;
-                }
-            } catch (error) {
-                console.error("Error fetching student data:", error);
-                resultDiv.innerHTML = `
-                    <div class="not-found">
-                        <p>데이터를 불러오는 중 오류가 발생했습니다.</p>
-                        <p>잠시 후 다시 시도해주세요.</p>
+            const studentHtml = students.map(student => `
+                <div class="student-info">
+                    <span class="campus-badge">${getCampusFullName(student.campus)}</span>
+                    <span class="period-badge">${getPeriodFullName(student.period)}</span>
+
+                    <div class="info-row">
+                        <span class="info-label">이름:</span>
+                        ${student.name} (${student.engName})
                     </div>
-                `;
-            }
+                    <div class="info-row">
+                        <span class="info-label">학교:</span>
+                        ${student.school}
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">학년:</span>
+                        ${student.grade}
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">반배정:</span>
+                        ${student.class}
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">레벨(반이름):</span>
+                        ${student.level}(${student.group})
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">셔틀버스:</span>
+                        ${student.shuttle || "신청안함"}
+                    </div>
+                    <div class="notice" style="font-size: 12px; color: #666; margin-top: 15px; margin-left: 100px;">
+                        레벨테스트 및 학년, 설문조사 결과를 고려하여 반이 배정되었습니다.
+                    </div>
+                </div>
+            `).join('<div style="margin: 20px 0;"></div>'); // 학생 정보 사이 여백 추가
+
+            resultDiv.innerHTML = studentHtml;
+        } else {
+            resultDiv.innerHTML = `
+                <div class="not-found">
+                    <p>입력하신 연락처로 등록된 학생 정보가 없습니다.</p>
+                    <p>연락처를 다시 확인해 주세요.</p>
+                </div>
+            `;
         }
+    } catch (error) {
+        console.error("Error fetching student data:", error);
+        resultDiv.innerHTML = `
+            <div class="not-found">
+                <p>데이터를 불러오는 중 오류가 발생했습니다.</p>
+                <p>잠시 후 다시 시도해주세요.</p>
+            </div>
+        `;
+    }
+}
 
         // Enter 키 이벤트 리스너
         document.getElementById('phoneNumber').addEventListener('keypress', function(e) {
